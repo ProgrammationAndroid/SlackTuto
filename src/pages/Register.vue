@@ -13,28 +13,28 @@
         <div class="field">
           <div class="ui left icon input">
             <i class="user icon"></i>
-            <input type="text" name="name" placeholder="Pseudo" v-model.trim="name">
+            <input type="text" name="name" placeholder="Pseudo" v-model.trim="name" required>
           </div>
         </div>
 
         <div class="field">
           <div class="ui left icon input">
             <i class="user icon"></i>
-            <input type="email" name="email" placeholder="Email" v-model.trim="email">
+            <input type="email" name="email" placeholder="Email" v-model.trim="email" required>
           </div>
         </div>
 
         <div class="field">
           <div class="ui left icon input">
             <i class="lock icon"></i>
-            <input type="password" name="password" placeholder="Mot de passe" v-model="password">
+            <input type="password" name="password" placeholder="Mot de passe" v-model.trim="password" required>
           </div>
         </div>
 
         <div class="field">
           <div class="ui left icon input">
             <i class="lock icon"></i>
-            <input type="password" name="password_confirmation" placeholder="Répéter le mot de passe" v-model="password_confirmation">
+            <input type="password" name="password_confirmation" placeholder="Répéter le mot de passe" v-model.trim="password_confirmation" required>
           </div>
         </div>
 
@@ -78,14 +78,12 @@
             }
         },
         methods: {
-            register () {
-                console.log("Register")
-                this.errors = [];
+            register () {                
+                this.errors = []
 
                 if(this.isFormValid()){
                     this.isLoading = true
-                    firebase.auth().createUserWithEmailAndPassword(this.email, this.password).then( user => {
-                    console.log("Utilisateur inscrit " + user.email)
+                    firebase.auth().createUserWithEmailAndPassword(this.email, this.password).then( user => {              
 
                     user.updateProfile({
                         displayName: this.name,
