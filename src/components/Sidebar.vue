@@ -3,6 +3,7 @@
     <div class="sidebar">
         <h1 class="ui inverted center aligned header">#Tuto::Slack#</h1>
         <connected-user></connected-user>
+        <channels></channels>
 
     </div>
 
@@ -11,10 +12,11 @@
 <script>
 
     import ConnectedUser from './sidebar/ConnectedUser'
+    import Channels from './sidebar/Channels'
 
     export default {
         name: 'sidebar',
-        components: { ConnectedUser }
+        components: { ConnectedUser, Channels }
     }
 </script>
 
