@@ -9,8 +9,8 @@
 
 <script>
 
-    import Sidebar from '../components/Sidebar'
-    import Messages from '../components/Messages'
+    import Sidebar from '../components/sidebar/Sidebar'
+    import Messages from '../components/messages/Messages'
     
     export default {
         name: 'tchat',

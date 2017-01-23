@@ -11,8 +11,8 @@
 
 <script>
 
-    import ConnectedUser from './sidebar/ConnectedUser'
-    import Channels from './sidebar/Channels'
+    import ConnectedUser from './ConnectedUser'
+    import Channels from './Channels'
 
     export default {
         name: 'sidebar',
