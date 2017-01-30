@@ -43,7 +43,7 @@
 
                     if(this.message.length > 0){
                         //Envoi du message
-                        this.$parent.messagesRef.child(this.currentChannel.id).push().set(this.createMessage()).then( () => {
+                        this.$parent.getMessageRef().child(this.currentChannel.id).push().set(this.createMessage()).then( () => {
 
                         }).catch( error => {
                             this.errors.push(error.message)
