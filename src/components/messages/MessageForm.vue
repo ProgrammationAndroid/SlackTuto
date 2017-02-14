@@ -11,12 +11,25 @@
 
                 <div class="field">
                     <button class="ui green button" @click.prevent="sendMessage">Envoyer</button>
-                    <button class="ui labeled icon button"><i class="cloud upload icon"></i>Fichier</button>
+                    <button class="ui labeled icon button" @click.prevent="openFileModal"><i class="cloud upload icon"></i>Fichier</button>
                 </div>
 
             </div>
 
         </div>
+
+        <!-- Progress Bar Upload File -->
+        <div class="ui small orange inverted progress" data-total="100" id="uploadedFile">
+
+            <div class="bar">
+                <div class="progress"></div>
+            </div>
+            <div class="label">{{ uploadLabel }}</div>
+
+        </div>
+
+        <!-- File modal -->
+        <file-modal ref="file_modal"></file-modal>
     </div>
     
 </template>
@@ -24,17 +37,34 @@
 <script>
 
     import { mapGetters } from 'vuex'
+    import FileModal from './FileModal'
+    import uuidV4 from 'uuid/V4'
 
     export default {
         name: 'message-form',
+        components: { FileModal },
         data () {
             return {
                 message: '',
-                errors: []
+                errors: [],
+                storageRef: firebase.storage().ref(),
+                uploadTask: null,
+                uploadState: null
             }
         },
         computed : {
-            ...mapGetters(['currentChannel', 'currentUser'])
+            ...mapGetters(['currentChannel', 'currentUser', 'isPrivate']),
+            uploadLabel () {
+                switch(this.uploadState){
+                    case 'uploading': return 'Envoi en cours...'
+                        break;
+                    case 'error': return 'Une erreur s\'est produite'
+                        break;
+                    case 'done': return 'Envoi effectué'
+                        break;
+                    default: return ''    
+                }
+            }
         },
         methods: {
             sendMessage () { 
@@ -53,10 +83,9 @@
                     }
                 }
             },
-            createMessage () { 
+            createMessage (fileUrl = null) { 
 
-                return {
-                    content: this.message,
+                let message = {                    
                     timestamp: firebase.database.ServerValue.TIMESTAMP,
                     user: {
                         name: this.currentUser.displayName,
@@ -64,7 +93,72 @@
                         id: this.currentUser.uid
                     }
                 }
+                if(fileUrl == null){
+                    message['content'] = this.message
+                }else{
+                    message['image'] = fileUrl
+                }
+                return message
 
+            },
+            uploadFile(file, metadata) {
+                if(file === null) return false
+
+                let pathToUpload = this.currentChannel.id
+                let ref = this.$parent.getMessageRef()
+                let filePath = this.getPath() + '/' + uuidV4() + '.jpg'
+
+                //Upload du Fichier
+                this.uploadTask = this.storageRef.child(filePath).put(file, metadata)
+                this.uploadState = "uploading"
+
+                this.uploadTask.on('state_changed', snap => {
+                    // Upload en cours
+                    let percent = (snap.bytesTransferred / snap.totalBytes) * 100
+                    $("#uploadedFile").progress("set percent", percent)
+                }, error => {
+                    // Erreur
+                    this.errors.push(error.message)
+                    this.uploadState = 'error'
+                    this.uploadTask = null
+                }, () => {
+                    // Upload finit
+                    this.uploadState = 'done'
+                    this.$refs.file_modal.resetForm()
+
+                    //Récupération de l'url du Fichier
+                    let fileUrl = this.uploadTask.snapshot.downloadURL
+                    this.sendFileMessage(fileUrl, ref, pathToUpload)
+                    
+                })
+
+            },
+            sendFileMessage(fileUrl, ref, pathToUpload){
+                
+                ref.child(pathToUpload).push().set(this.createMessage(fileUrl)).then( () => {
+                    this.$nextTick(() => {
+                        $("html, body").scrollTop($(document).height())
+                    })
+                }).catch( error => {
+                    this.errors.push(error.message)
+                })
+                
+            },  
+            openFileModal () {
+                $("#fileModal").modal("show")
+            },
+            getPath() {
+                if(this.isPrivate){
+                    return 'tchat/private/'+this.currentChannel.id
+                }else{
+                    return 'tchat/public'
+                }
+            }
+        },
+        beforeDestroy () {
+            if(this.uploadTask !== null){
+                this.uploadTask.cancel()
+                this.uploadTask = null
             }
         }
 
